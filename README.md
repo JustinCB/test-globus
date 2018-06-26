@@ -44,13 +44,13 @@
 <li>You must also install the globus-cli python package for transfers.  See the guide at <a href="https://docs.globus.org/cli/installation/">https://docs.globus.org/cli/installation/</a> for more information.</li></ul>
 <a name="TEST" id="TEST"></a><h2>Using test_globus.sh</h2>
 <ul><li>After installing the base globus packages, get test_globus.sh:<br />
-<pre style="overflow:auto;"><code>curl -O https://github.com/JustinCB/test-globus/raw/master/test_globus.sh || wget https://github.com/JustinCB/test-globus/raw/master/test_globus.sh
+<pre style="overflow:auto;"><code>curl -O https://raw.githubusercontent.com/JustinCB/test-globus/master/test_globus.sh || wget https://raw.githubusercontent.com/JustinCB/test-globus/master/test_globus.sh
 chmod +x ./test_globus.sh</code></pre></li>
 <li>You can then run the shell script, which will print information about all the collections on your server.  You may want to redirect the output to a file, as it produces a lot of it:<br />
 <pre style="overflow:auto;"><code>./test_globus.sh >test_globus.log 2>&amp;1</code></pre></li></ul>
 <a name="END" id="END"></a><h2>Using endpoint_test.sh</h2>
 <ul><li>After installing the base globus packages, get endpoint_test.sh:<br />
-<pre style="overflow:auto;"><code>curl -O https://github.com/JustinCB/test-globus/raw/master/endpoint_test.sh || wget https://github.com/JustinCB/test-globus/raw/master/endpoint_test.sh
+<pre style="overflow:auto;"><code>curl -O https://raw.githubusercontent.com/JustinCB/test-globus/master/endpoint_test.sh || wget https://raw.githubusercontent.com/JustinCB/test-globus/master/endpoint_test.sh
 chmod +x ./endpoint_test.sh</code></pre></li>
 <li>You can then run the test script.  It runs the same tests as test_globus.sh, but it takes endpoint names &amp; attempts to resolve them to UUIDs &amp; generate &amp; transfer the same files to &amp; from those endpoints:<br />
 <pre style="overflow:auto;"><code>./endpoint_test.sh &lt;endpoint_names> >endpoint_test.log 2>&amp;1</code></pre></li></ul>
