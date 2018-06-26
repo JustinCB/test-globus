@@ -89,6 +89,6 @@
     *   *   Test Error: Transfer timed out/finished & is paused or canceled
 
         *   This means that the transfer was paused or canceled. The script will exit because if it didn't it would hang indefinitely.
-    *   *   <file> fail'd with <options>
+    *   *   &lt;file> fail'd with &lt;options>
 
         *   The test scripts verify that the files were not changed after being transfer'd. If you get this message, that means that the file changed in transfer, which is a problem.
