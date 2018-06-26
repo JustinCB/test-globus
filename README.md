@@ -1,10 +1,3 @@
-<!DOCTYPE html>
-<html>
-<head>
-<title>Globus Test Guide</title>
-<base href="https://docs.globus.org/globus-test-guide/" />
-</head>
-<body>
 <ul>
 <li><a href="../api/">APIs</a>
 <ul>
