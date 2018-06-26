@@ -1,32 +1,32 @@
 <ul>
-<li><a href="../api/">APIs</a>
+<li><a href="https://docs.globus.org/api/">APIs</a>
 <ul>
-<li><a href="../api/auth/">Auth</a></li>
-<li><a href="../api/transfer/">Transfer</a></li>
-<li><a href="../api/search/">Search</a></li>
+<li><a href="https://docs.globus.org/api/auth/">Auth</a></li>
+<li><a href="https://docs.globus.org/api/transfer/">Transfer</a></li>
+<li><a href="https://docs.globus.org/api/search/">Search</a></li>
 <li><a href="https://globus-sdk-python.readthedocs.io/en/stable/">Python SDK</a></li>
-<li><a href="../api/helper-pages/">Helper Pages</a></li>
+<li><a href="https://docs.globus.org/api/helper-pages/">Helper Pages</a></li>
 </ul>
 </li>
-<li><a href="../how-to/">How To</a></li>
+<li><a href="https://docs.globus.org/how-to/">How To</a></li>
 <li>Guides
 <ul>
-<li><a href="../globus-connect-server-installation-guide/">Globus Connect Server Installation Guide</a></li>
-<li><a href="../globus-connect-server-v5-installation-guide/">Globus Connect Server v5 Installation Guide</a></li>
+<li><a href="https://docs.globus.org/globus-connect-server-installation-guide/">Globus Connect Server Installation Guide</a></li>
+<li><a href="https://docs.globus.org/globus-connect-server-v5-installation-guide/">Globus Connect Server v5 Installation Guide</a></li>
 <li>Globus Test Guide</li>
-<li><a href="../management-console-guide/">Management Console Guide</a></li>
-<li><a href="../data-publication-user-guide/">Data Publication User Guide</a></li>
-<li><a href="../data-publication-admin-guide/">Data Publication Admin Guide</a></li>
-<li><a href="../authorization-authentication-guide/">Authorization/Authentication Guide</a></li>
-<li><a href="../cli/">Command Line Interface</a></li>
-<li><a href="../premium-storage-connectors/">Premium Storage Connectors</a></li>
-<li><a href="../modern-research-data-portal/">Modern Research Data Portal</a></li>
+<li><a href="https://docs.globus.org/management-console-guide/">Management Console Guide</a></li>
+<li><a href="https://docs.globus.org/data-publication-user-guide/">Data Publication User Guide</a></li>
+<li><a href="https://docs.globus.org/data-publication-admin-guide/">Data Publication Admin Guide</a></li>
+<li><a href="https://docs.globus.org/authorization-authentication-guide/">Authorization/Authentication Guide</a></li>
+<li><a href="https://docs.globus.org/cli/">Command Line Interface</a></li>
+<li><a href="https://docs.globus.org/premium-storage-connectors/">Premium Storage Connectors</a></li>
+<li><a href="https://docs.globus.org/modern-research-data-portal/">Modern Research Data Portal</a></li>
 </ul>
 </li>
 <li>Support
 <ul>
-<li><a href="../faq/">FAQs</a></li>
-<li><a href="../security-bulletins/">Security Bulletins</a></li>
+<li><a href="https://docs.globus.org/faq/">FAQs</a></li>
+<li><a href="https://docs.globus.org/security-bulletins/">Security Bulletins</a></li>
 <li><a href="https://www.globus.org/mailing-lists">Mailing Lists</a></li>
 <li><a href="https://www.globus.org/contact-us">Contact Us</a></li>
 <li><a href="https://support.globus.org/requests">Check Support Tickets</a></li>
