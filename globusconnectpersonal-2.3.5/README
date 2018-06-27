@@ -1,6 +1,0 @@
-Using Globus Connect Personal
-===============================
-Simply run the globusconnect script from this directory. You will be
-prompted on the first run for the setup key given to you on endpoint
-creation on globus.org. Once this setup is complete you may began 
-using GCP.
