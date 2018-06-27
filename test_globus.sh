@@ -94,7 +94,7 @@ get_gcp () {
 	elif ls globusconnectpersonal-*.tgz >/dev/null 2>&1
 	then
 		tar -xzf `ls globusconnectpersonal-*.tgz | awk 'NR==1'` >/dev/null
-else
+	else
 		wget -q https://downloads.globus.org/globus-connect-personal/linux/stable/globusconnectpersonal-latest.tgz >/dev/null 2>&1 || curl -O https://downloads.globus.org/globus-connect-personal/linux/stable/globusconnectpersonal-latest.tgz >/dev/null -s
 		tar -xzf globusconnectpersonal-latest.tgz >/dev/null
 	fi
@@ -125,7 +125,7 @@ globus_wait () {
 					then
 						>&2 echo "Ensure connections on ports 50000-51000 aren't block'd by your firewall rules"
 					fi
-					exit 1
+					return 1
 				else
 					sleep 1
 				fi
@@ -136,27 +136,27 @@ globus_wait () {
 				then
 					>&2 echo "Ensure connections on ports 50000-51000 aren't block'd by your firewall rules"
 				fi
-				exit 1
+				return 1
 			fi
 			if [ "`globus task show $1 | awk '/Status/{print $NF}'`" = "SUCCEEDED" ]
 			then
 				#succeeded between timeout & getting here
-				exit 0
+				return 0
 			elif [ "`globus task show $1 | awk '/Status/{print $NF}'`" = "ACTIVE" ]
 			then
 				#loop back again, then
 				true #a command is done, not an empty loop
 			else
 				>&2 echo "Test Error: Transfer timed out/finished & is paused or canceled"
-				exit 1
+				return 1
 			fi
 		elif [ $tmp != 0 ]
 		then
 			# globus task wait has (probably) printed an error message, so just exit
-			exit $tmp
+			return $tmp
 		else
 			#succeeded
-			exit 0
+			return 0
 		fi
 	done
 }
@@ -299,7 +299,7 @@ endpoint_test_helper () {
 	echo gcp stopped
 	echo deleting test endpoint
 	printf "test "
-	globus endpoint delete `echo $ids | awk '{print $1}'`
+	globus endpoint delete `echo $test_ids | awk '{print $1}'`
 	echo removing gcp temporary config folder
 	rm -rf /tmp/globuscfg
 	echo gcp temporary config folder deleted
@@ -367,6 +367,55 @@ list_roots ()
 		fi
 	done
 }
+list_other_storage_gateway_uuids ()
+{
+	for uuid_i in `sudo /opt/globus/bin/gcs-config storage-gateway list | awk 'NR!=1{print $1}'`
+	do
+		if [ ! "`sudo /opt/globus/bin/gcs-config storage-gateway show $uuid_i | grep domain`" ]
+		then
+			 echo $uuid_i
+		fi
+	done
+}
+get_storage_gateway_name ()
+{
+	sudo /opt/globus/bin/gcs-config storage-gateway show $1 | awk '/display-name/{$1="";sub(/^ /, "");gsub(/ $/, "");sub(/^"/,"");gsub(/"$/,"");print $0}'
+}
+get_storage_gateway_type ()
+{
+	sudo /opt/globus/bin/gcs-config storage-gateway show $1 | awk '/connector/{$1="";sub(/^ /, "");gsub(/ $/, "");sub(/^"/,"");gsub(/"$/,"");print $0}'
+}
+get_storage_gateway_root ()
+{
+	sudo /opt/globus/bin/gcs-config storage-gateway show $1 | awk '/root/{$1="";sub(/^ /, "");gsub(/ $/, "");sub(/^"/,"");gsub(/"$/,"");print $0}'
+}
+list_other_storage_gateways ()
+{
+	echo
+	echo Printing information on other storage gateways
+	echo Note: these are not set up for transfers
+	echo You must create a new collection with globus.org to set them up
+	echo
+	echo
+	for i in `list_other_storage_gateway_uuids`
+	do
+		get_storage_gateway_name $i | awk '{print $0":"}'
+		echo "	Type:"
+		printf "\t\t"
+		get_storage_gateway_root $i
+		echo "	Display Name:"
+		printf "\t\t"
+		get_storage_gateway_name $i
+		if [ "`get_storage_gateway_type $i`" = "POSIX" ]
+		then
+			echo "	Storage Root:"
+			printf "\t\t"
+			get_storage_gateway_root $i
+			echo "	Stat:"
+			globus_stat "`get_storage_gateway_root $i`"
+		fi
+	done
+}
 if [ ! "`netstat -lt | awk '$4 ~ /[\.:]((5[01]...)|(gsiftp))$/'`" ]
 then
 	>&2 echo Globus Connect ports 50000-51000 may be block\'d in your firewall
@@ -400,6 +449,7 @@ do
 		globus_stat "`list_roots | awk 'NR=='$i''`"
 	fi
 done
+list_other_storage_gateways
 endpoint_test_helper `get_gcp` $UUIDs
 echo
 echo

@@ -1,0 +1,267 @@
+#!/bin/bash
+#
+# Copyright 2010-2014 University of Chicago
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+
+version () {
+    VERSION=$($GC_DIR/gc-ctrl.py -version)
+    echo "Globus Connect Personal $VERSION"
+}
+
+usage () {
+    echo
+    echo "Usage:
+  # Run GUI (prompts for setup key if not already set up):
+  globusconnectpersonal [ -dir <path> ]
+
+  # Run setup from the command line:
+  globusconnectpersonal -setup <security code> [ -dir <path> ]
+
+  # Start without GUI (requires that setup has been run):
+  globusconnectpersonal -start|-debug [ -dir <path> ] [ -restrict-paths <string> ] [ -shared-paths <string> ]
+
+  # Manage a running command line instance:
+  globusconnectpersonal -stop|-status|-trace [ -dir <path> ]
+
+  # Print version and exit:
+  globusconnectpersonal -version"
+    echo
+
+    echo "Common Options:
+    -dir <path>              specify an alternative directory with
+                             configuration files instead of the default
+                             \$HOME/.globusonline. You can run only one
+                             Globus Connect Personal process with the same
+                             configuration."
+    echo
+
+    echo "CLI Commands:
+    -version                 display the version number and exit
+    -setup <security code>   register Globus Connect Personal with Globus.org
+    -start                   start Globus Connect Personal and establish connection
+    -debug                   start Globus Connect Personal with verbose output
+                             to Globus.org
+    -stop                    stop Globus Connect Personal
+    -status                  return a status of running Globus Connect Personal
+    -trace                   trace a running process of Globus Connect Personal"
+    echo
+
+    echo "CLI Options for -start and -debug:
+    -restrict-paths <string> A comma separated list of full paths that
+                             Globus may access. This will override any paths
+                             configured via the GUI. Each path may be prefixed
+                             by R and/or W or N, denoting read or write access,
+                             or no access. If no prefix is present, RW is
+                             assumed. The rules apply to all contents and
+                             subdirectories. Order of paths does not matter
+                             -- the permissions on the longest matching path
+                             will apply.
+
+                             The special character '~' will be replaced by the
+                             authenticated user's home directory. Note
+                             that if the authenticated user's home
+                             directory is not accessible, the home
+                             directory and starting path will be set to '/'.
+
+                             Shell globs '*' and '?' and character classes
+                             enclosed in '[' and ']' are supported.
+                             If a path contains any of these characters, use
+                             '\\' to escape them. Literal commas must be
+                             escaped with the url encoding '%2C', and literal
+                             percent must be escaped with '%25'. An implicit
+                             rule denying access to dot files in the users
+                             home directory is
+
+                             Examples:
+                                rw~/
+                                    read write access to user's home directory.
+                                    This is set as the default when the
+                                    application is first run without a
+                                    -restrict-paths or -shared-paths option.
+                                r/pub
+                                    read only access to directory /pub
+                                r/a/*.txt
+                                    read only access to any file ending in
+                                    '.txt' in directory /a
+                                r/a/[a-c]?
+                                    read only access to any file in /a with
+                                    a two character name and beginning with
+                                    'a', 'b', or 'c'.
+                                rw~/,r/pub,r/dir_containing_a_comma%2C
+                                    read write access to user's home directory,
+                                    read only access to /pub, and read only
+                                    access to '/dir_containing_a_comma,'.
+
+    -shared-paths <string>   A list of paths in the same format as for
+                             restrict-paths, but controlling which paths are
+                             allowed to be shared. This should be a subset of
+                             restrict-paths.
+    "
+}
+
+if [ "$EUID" -eq 0 ]; then
+    echo "Running Globus Connect Personal as root is not supported"
+    exit 1
+fi
+
+if [ `getconf LONG_BIT` = 64 ]; then
+    ARCH=amd64
+else
+    ARCH=i386
+fi
+
+umask 0022
+EXE_DIR="${PWD}"
+# follow links to make script work if symlinked, e.g. into ~/bin
+SCRIPT_SOURCE=`readlink -e "${BASH_SOURCE[0]}"`
+cd `dirname "$SCRIPT_SOURCE"`
+GC_DIR="${PWD}"
+
+CONFIG="${HOME}/.globusonline"
+RP="NONE"
+SP="NONE"
+OPTION=""
+
+export PYTHONUNBUFFERED=1
+
+while [ $# -gt 0 ]; do
+    case "$1" in
+	-rp|-restrict-paths)
+	    if [ $# -lt 2 ]; then
+		usage
+		exit 1
+	    fi
+	    RP="$2"
+	    shift 2
+	    ;;
+        -sp|-shared-paths)
+            if [ $# -lt 2 ]; then
+                usage
+                exit 1
+            fi
+            SP="$2"
+            shift 2
+            ;;
+
+	-setup)
+	    if [ $# -lt 2 ]; then
+		echo "Missing setup key argument to -setup, see -help for details" >&2
+		exit 1
+	    fi
+	    OPTION="$1"
+	    CODE="$2"
+	    shift 2
+	    ;;
+	-start|-stop|-status|-trace|-debug)
+		if [ "$OPTION" == "-debug" ] && [ "$1" == "-start" ]; then
+			shift
+			continue
+		fi
+
+	    OPTION="$1"
+	    shift
+	    ;;
+	-version)
+	    version
+	    exit 0
+	    ;;
+	-dir)
+	    shift
+	    CONFIG="$1"
+	    shift
+	    cd "${EXE_DIR}"
+	    cd "${CONFIG}" 2>/dev/null
+	    if [ $? -ne 0 ]; then
+		echo "Could not read the directory '${CONFIG}' with configuration files."
+		echo -n "Creating the directory... "
+		mkdir -p "${CONFIG}" 2>/dev/null
+		if [ ! -d "${CONFIG}" ]; then
+		    echo -e "\nCould not create the directory '${CONFIG}'. Exiting..." >&2
+		    exit 1
+		fi
+		echo "Done"
+		cd "${CONFIG}"
+	    fi
+	    CONFIG="${PWD}"
+	    ;;
+	*)
+	    usage
+	    exit 0
+	    ;;
+    esac
+done
+
+if [ "$RP" != "NONE" -o "$SP" != "NONE" ] \
+&& [ "$OPTION" != "-start" -a "$OPTION" != "-debug" ]; then
+    echo "Options -restrict-paths and -shared-paths can only be used
+with -start or -debug. Run with -help for details." >&2
+    exit 1
+fi
+
+export GCP_CONFIG_DIR="${CONFIG}/lta"
+export GLOBUS_LOCATION="${GC_DIR}/gt_${ARCH}"
+cd "${GC_DIR}"
+
+# Start GUI
+if [ "x${OPTION}" = "x" ]; then
+    if [ "$DISPLAY" = "" ]; then
+        (
+        echo "No \$DISPLAY environment variable set."
+        echo "Please set \$DISPLAY or run the Globus Connect Personal CLI by running:"
+        echo -e "  globusconnectpersonal -start"
+        ) >&2
+        exit 1
+    fi
+    which wish 1>/dev/null 2>&1
+    if [[ $? -ne 0 ]]; then
+        (
+        echo "Cannot find Tcl/Tk >= 8.4. Please install Tcl/Tk or set up the PATH variable."
+        echo "To install Tcl/Tk you need to execute with root privileges:"
+        echo "For Ubuntu, Linux Mint, Debian:"
+        echo " # apt-get install tk tcllib"
+        echo "For Fedora, CentOS, RedHat:"
+        echo " # yum install tk tcllib"
+        echo " Note: if you encounter an error about tcllib not being"
+        echo " available, it can be found here and installed manually:"
+        echo " http://www.tcl.tk/software/tcllib/"
+        echo "For openSUSE:"
+        echo " # zypper install tk tcllib"
+        ) >&2
+        exit 1
+    fi
+    export TCLLIBPATH=./tablelist5.9/
+    exec wish ./globusconnect.tcl "${CONFIG}" "${RP}" "${SP}"
+fi
+
+# Start non-GUI
+case "$OPTION" in
+    -setup)
+	exec ./gc-ctrl.py "${OPTION}" "${CODE}" "${CONFIG}"
+	;;
+    -start|-debug)
+	if [ ! -e "${CONFIG}/lta/config" \
+	    -o ! -e "${CONFIG}/lta/gridmap" ]; then
+            (
+	    echo "You must register Globus Connect Personal on Globus first"
+            echo "See the -setup option, and get a setup code online at:"
+            echo "  https://www.globus.org/xfer/ManageEndpoints"
+            ) >&2
+	    exit 1
+	fi
+	;;
+    -stop|-status|-trace)
+	;;
+esac
+exec ./gc-ctrl.py "${OPTION}" "${RP}" "${SP}" "${CONFIG}" "forward"
