@@ -64,7 +64,7 @@ chmod +x ./test_globus.sh</code></pre></li>
 <pre style="overflow:auto;"><code>curl -O https://raw.githubusercontent.com/JustinCB/test-globus/master/endpoint_test.sh || wget https://raw.githubusercontent.com/JustinCB/test-globus/master/endpoint_test.sh
 chmod +x ./endpoint_test.sh</code></pre></li>
 <li>You can then run the test script.  It runs the same tests as test_globus.sh, but it takes endpoint names &amp; attempts to resolve them to UUIDs &amp; generate &amp; transfer the same files to &amp; from those endpoints:<br />
-<pre style="overflow:auto;"><code>./endpoint_test.sh &lt;endpoint_names> >endpoint_test.log 2>&amp;1</code></pre></li></ul>
+<pre style="overflow:auto;"><code>./endpoint_test.sh &lt;endpoint_names_or_uuids> >endpoint_test.log 2>&amp;1</code></pre></li></ul>
 <a name="OUT" id="OUT"></a><h2>Outputs of the scripts</h2>
 <ul><li>If it succeeds, your installation of globus is most likely working.  If it fails, you can look at its output to see what went wrong:
 <ul><li><ul><li><pre style="overflow:auto;"><code>Globus Connect ports 50000-51000 may be block'd in your firewall
