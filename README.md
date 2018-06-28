@@ -57,7 +57,7 @@
         chmod +x ./endpoint_test.sh
 *   You can then run the test script. It runs the same tests as test_globus.sh, but it takes endpoint names & attempts to resolve them to UUIDs & generate & transfer the same files to & from those endpoints:  
 
-        ./endpoint_test.sh <endpoint_names> >endpoint_test.log 2>&1
+        ./endpoint_test.sh <endpoint_names_or_uuids> >endpoint_test.log 2>&1
 <a name="OUT" id="OUT"></a>
 ## Outputs of the scripts
 *   If it succeeds, your installation of globus is most likely working. If it fails, you can look at its output to see what went wrong:
