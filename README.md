@@ -25,10 +25,14 @@
 # Globus Test Guide
 ## Table of Contents
 
+*   <a href="#INTRO">Introduction</a>
 *   [Before getting the scripts](#PREREQ)
 *   [Using test_globus.sh](#TEST)
 *   [Using endpoint_test.sh](#END)
 *   [Outputs of the scripts](#OUT)
+
+<a name="INTRO" id="INTRO"></a><h2>Introduction</h2>
+<p>I'm sure you have two questions: what is this for? &amp; how can I use it?  These two scripts are designed for to test endpoints &amp; to get information that can help troubleshooting.  test_globus.sh will print information on all your collections &amp; storage gateways.  Storage gateways are set up with your server &amp; collections are set up with globus so you can transfer to &amp; from them.  endpoint_test.sh attempts to look up endpoints/collections that you supply on the command line &amp; runs the same tests with them as test_globus.sh runs with your local collections on your server.  The lookup can sometimes have trouble, though, but you can also pass it a UUID, which isn't as likely to have trouble on lookup.</p>
 
 <a name="PREREQ" id="PREREQ"></a>
 ## Before getting the scripts
