@@ -401,17 +401,26 @@ list_other_storage_gateway_uuids ()
 		fi
 	done
 }
+storage_gateway_show ()
+{
+	if [ ! "${storage_gateway_show_info:+w}" ] || [ "$storage_gateway_showing" != "$1" ]
+	then
+		storage_gateway_show_info="`sudo /opt/globus/bin/gcs-config storage-gateway show $1`"
+		storage_gateway_showing="$1"
+	fi
+	echo "$storage_gateway_show_info"
+}		
 get_storage_gateway_name ()
 {
-	sudo /opt/globus/bin/gcs-config storage-gateway show $1 | awk '/display-name/{$1="";sub(/^ /, "");gsub(/ $/, "");sub(/^"/,"");gsub(/"$/,"");print $0}'
+	storage_gateway_show $1 | awk '/display-name/{$1="";sub(/^ /, "");gsub(/ $/, "");sub(/^"/,"");gsub(/"$/,"");print $0}'
 }
 get_storage_gateway_type ()
 {
-	sudo /opt/globus/bin/gcs-config storage-gateway show $1 | awk '/connector/{$1="";sub(/^ /, "");gsub(/ $/, "");sub(/^"/,"");gsub(/"$/,"");print $0}'
+	storage_gateway_show $1 | awk '/connector/{$1="";sub(/^ /, "");gsub(/ $/, "");sub(/^"/,"");gsub(/"$/,"");print $0}'
 }
 get_storage_gateway_root ()
 {
-	sudo /opt/globus/bin/gcs-config storage-gateway show $1 | awk '/root/{$1="";sub(/^ /, "");gsub(/ $/, "");sub(/^"/,"");gsub(/"$/,"");print $0}'
+	storage_gateway_show $1 | awk '/root/{$1="";sub(/^ /, "");gsub(/ $/, "");sub(/^"/,"");gsub(/"$/,"");print $0}'
 }
 list_other_storage_gateways ()
 {
