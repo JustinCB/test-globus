@@ -1,4 +1,22 @@
 #!/bin/sh
+collection_list ()
+{
+	if [ ! "${collection_list_list_of_collections:+w}" ]
+	then
+		collection_list_list_of_collections="`sudo /opt/globus/bin/gcs-config collection list`"
+	fi
+	echo "$collection_list_list_of_collections"
+}
+
+gateway_list ()
+{
+	if [ ! "${gateway_list_list_of_gateways:+w}" ]
+	then
+		gateway_list_list_of_gateways="`sudo /opt/globus/bin/gcs-config storage-gateway list`"
+	fi
+	echo "$gateway_list_list_of_gateways"
+}
+
 globus_ls () {
 	ls_num=`ls "$@" | awk 'NF>0' | wc -l`
 	ls_loops=`ls "$@" | grep -c ':'` #actually one more than that, for we start @ 0
@@ -339,37 +357,43 @@ make_test_dataset ()
 }
 list_collection_names ()
 {
-	sudo /opt/globus/bin/gcs-config collection list | cut -d '|' -f4 | awk 'NR!=1{gsub(/^ /,"");gsub(/ $/,"");print}'
+	collection_list | awk 'BEGIN{FS="|"} NR!=1{sub(/^ /,"",$4);gsub(/ $/,"",$4);print $4}'
 }
 list_names ()
 {
-	sudo /opt/globus/bin/gcs-config collection list | cut -d '|' -f3 | awk 'NR!=1{sub(/^ /,"");gsub(/ $/,"");print}'
+	collection_list | awk 'BEGIN{FS="|"} NR!=1{sub(/^ /,"",$3);gsub(/ $/,"",$3);print $3}'
 }
 list_types ()
 {
-	sudo /opt/globus/bin/gcs-config collection list | awk 'NR!=1' | cut -d '|' -f2 | sed -e 's/^[ \t]*//;s/[ \t]*$//'
+	collection_list | awk 'BEGIN{FS="|"} NR!=1{sub(/^ /,"",$2);gsub(/ $/,"",$2);print $2}'
 }
 list_uuid ()
 {
-	sudo /opt/globus/bin/gcs-config collection list | awk 'NR!=1{print $1}'
+	collection_list | awk 'NR!=1{print $1}'
 }
 list_roots ()
 {
-	for root_i in `seq 2 \`sudo /opt/globus/bin/gcs-config collection list | wc -l\``
+	root_i=2
 	# start @ 2 because we skip over the header
+	roots_old_IFS="$IFS"
+	IFS="
+"
+	for root_j in `list_types`
 	do
-		if [ "`list_types | awk 'NR=='$root_i'-1'`" = "POSIX" ]
-		# 1 less because list_types skips over the header
+		IFS="$roots_old_IFS"
+		if [ "$root_j" = "POSIX" ]
 		then
-			sudo /opt/globus/bin/gcs-config storage-gateway list | grep "`sudo /opt/globus/bin/gcs-config collection list | awk 'NR=='$root_i'' | cut -d '|' -f2-3 | sed -e 's/[\[\.\*\^\$\\]/\\&/g'`" | awk '{print $NF}'
+			gateway_list | awk -F '|' '$3 == "'"`collection_list | awk -F '|' 'NR=='$root_i'{print $3}'`"'"{sub(/^ /,"",$NF);gsub(/ $/,"",$NF);print $NF;}'
 		else
 			echo /BAD/PATH/NOT/POSIX
 		fi
+		root_i=`expr $root_i + 1`
 	done
 }
+
 list_other_storage_gateway_uuids ()
 {
-	for uuid_i in `sudo /opt/globus/bin/gcs-config storage-gateway list | awk 'NR!=1{print $1}'`
+	for uuid_i in `gateway_list | awk 'NR!=1{print $1}'`
 	do
 		if [ ! "`sudo /opt/globus/bin/gcs-config storage-gateway show $uuid_i | grep domain`" ]
 		then
@@ -402,7 +426,7 @@ list_other_storage_gateways ()
 		get_storage_gateway_name $i | awk '{print $0":"}'
 		echo "	Type:"
 		printf "\t\t"
-		get_storage_gateway_root $i
+		get_storage_gateway_type $i
 		echo "	Display Name:"
 		printf "\t\t"
 		get_storage_gateway_name $i
