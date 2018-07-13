@@ -48,7 +48,7 @@ globus_perftest ()
 	globus_perftest_temp=`do_perftest_round "${1}/globus_test1" oflags=dsync`
 	globus_perftest_tmp=`expr '(' $globus_perftest_tmp + $globus_perftest_temp ')' / 2`
 	globus_perftest_temp=`do_perftest_round "${1}/globus_test1" oflags=sync`
-	rm -f "${1}/globus_test1"
+	sudo rm -f "${1}/globus_test1"
 	globus_perftest_result_whole=`expr '(' $globus_perftest_tmp + $globus_perftest_temp ')' / 2`
 	globus_perftest_result_decimal=0
 	globus_perftest_byte_prefix=""
@@ -199,7 +199,7 @@ globus_stat () {
 		stat_i=`expr $stat_i + 1`
 	done
 	echo "		Write Performance:"
-	sudo globus_perftest $1
+	globus_perftest $1
 }
 get_gcp () {
 	if ls globusconnectpersonal-*.*.* >/dev/null 2>&1
