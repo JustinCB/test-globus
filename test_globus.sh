@@ -417,7 +417,7 @@ for test_i
 do
 if [ "$test_i" != "$1" ]
 then
-globus rm -rf "${test_i}:/globus_test/"
+globus_wait `globus delete -r "${test_i}:/globus_test/" | awk 'NR==2{print $NF}'`
 fi
 done
 cd $1
