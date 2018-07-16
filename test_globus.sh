@@ -252,7 +252,6 @@ then
 >&2 echo "Ensure connections on ports 50000-51000 aren't block'd by your firewall rules"
 fi
 return 1
-fi
 elif [ "`globus task show $1 | awk '/Details/{print $NF}'`" = "TIMEOUT" ]
 then
 >&2 echo "Task timed out"
