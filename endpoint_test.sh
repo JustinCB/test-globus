@@ -38,7 +38,7 @@ expr '(' $perftest_round_tmp + $perftest_round_temp ')' / 2
 }
 globus_perftest ()
 {
-# run it on $1/globus_test1
+
 
 globus_perftest_tmp=`do_perftest_round "${1}/globus_test1" ""`
 globus_perftest_temp=`do_perftest_round "${1}/globus_test1" conv=fdatasync`
@@ -114,7 +114,7 @@ echo "$gateway_list_list_of_gateways"
 }
 globus_ls () {
 ls_num=`ls "$@" | awk 'NF>0' | wc -l`
-ls_loops=`ls "$@" | grep -c ':'` 
+ls_loops=`ls "$@" | grep -c ':'`
 ls_prefix=""
 ls_j=1
 for ls_i in `seq 0 $loops`
@@ -141,7 +141,7 @@ while [ $stat_i -lt $stat_j ] || [ $stat_i = $stat_j ]
 do
 stat="`echo $stats | awk '{print $'$stat_i'}'`"
 if [ '\'"$stat" = '\(' ]
-# the '\' is because some shells will bail if either argument is "("
+
 then
 stat_i=`expr $stat_i + 1`
 echo $stats | awk '{print "\t\t\t("$'$stat_i'}'
@@ -202,7 +202,7 @@ globus_perftest $1
 get_gcp () {
 if ls globusconnectpersonal-*.*.* >/dev/null 2>&1
 then
-true 
+true
 elif ls globusconnectpersonal-*.tar >/dev/null 2>&1
 then
 xar -xf `ls globusconnectpersonal-*.tar | awk 'NR==1'` >/dev/null
@@ -259,22 +259,22 @@ return 1
 fi
 if [ "`globus task show $1 | awk '/Status/{print $NF}'`" = "SUCCEEDED" ]
 then
-#succeeded between timeout & getting here
+
 return 0
 elif [ "`globus task show $1 | awk '/Status/{print $NF}'`" = "ACTIVE" ]
 then
 
-true 
+true
 else
 >&2 echo "Test Error: Transfer timed out/finished & is paused or canceled"
 return 1
 fi
 elif [ $tmp != 0 ]
 then
-# globus task wait has (probably) printed an error message, so just exit
+
 return $tmp
 else
-#succeeded
+
 return 0
 fi
 done
@@ -397,7 +397,7 @@ for test_i
 do
 if [ "$test_i" = "$1" ]
 then
-true 
+true
 else
 echo testing endpoint $test_j
 globus_transfer_test_helper "`echo $test_ids | awk '{print $1}'`:/tmp/globus_test/" "${test_i}:/globus_test/" "`echo $test_ids | awk '{print $1}'`:/tmp/globus_test_returns/"
@@ -517,7 +517,7 @@ storage_gateway_show_info="`sudo /opt/globus/bin/gcs-config storage-gateway show
 storage_gateway_showing="$1"
 fi
 echo "$storage_gateway_show_info"
-}		
+}
 get_storage_gateway_name ()
 {
 storage_gateway_show $1 | awk '/display-name/{$1="";sub(/^ /, "");gsub(/ $/, "");sub(/^"/,"");gsub(/"$/,"");print $0}'
