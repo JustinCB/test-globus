@@ -5,12 +5,7 @@ perf_val="`sudo dd if="$1" of="$2" bs="$3" count="$4" $5 2>&1 | awk '!/records (
 if [ ! "$perf_val" ] && [ "$5" ]
 then
 do_perftest "$1" "$2" "$3" "$4" ""
-
 else
-
-
-
-
 perf_tmp="`echo $perf_val | awk '{$1="";print}'`"
 if [ "$perf_tmp" ]
 then
@@ -38,8 +33,6 @@ expr '(' $perftest_round_tmp + $perftest_round_temp ')' / 2
 }
 globus_perftest ()
 {
-
-
 globus_perftest_tmp=`do_perftest_round "${1}/globus_test1" ""`
 globus_perftest_temp=`do_perftest_round "${1}/globus_test1" conv=fdatasync`
 globus_perftest_tmp=`expr '(' $globus_perftest_tmp + $globus_perftest_temp ')' / 2`
@@ -136,12 +129,10 @@ stats="`(stat -x $1 2>/dev/null || stat $1) | xargs`"
 stat_j=`echo $stats | wc -w`
 stat_i=1
 stat_per=0
-
 while [ $stat_i -lt $stat_j ] || [ $stat_i = $stat_j ]
 do
 stat="`echo $stats | awk '{print $'$stat_i'}'`"
 if [ '\'"$stat" = '\(' ]
-
 then
 stat_i=`expr $stat_i + 1`
 echo $stats | awk '{print "\t\t\t("$'$stat_i'}'
@@ -219,7 +210,6 @@ globus_wait () {
 downs=0
 while true
 do
-
 globus task wait --timeout 30 $1
 tmp=$?
 if [ $tmp = 1 ]
@@ -259,11 +249,9 @@ return 1
 fi
 if [ "`globus task show $1 | awk '/Status/{print $NF}'`" = "SUCCEEDED" ]
 then
-
 return 0
 elif [ "`globus task show $1 | awk '/Status/{print $NF}'`" = "ACTIVE" ]
 then
-
 true
 else
 >&2 echo "Test Error: Transfer timed out/finished & is paused or canceled"
@@ -271,10 +259,8 @@ return 1
 fi
 elif [ $tmp != 0 ]
 then
-
 return $tmp
 else
-
 return 0
 fi
 done
@@ -389,7 +375,6 @@ test_ids=`globus endpoint create --personal 'test endpoint' | awk 'NR!=1{print $
 while [ "`./globusconnectpersonal -status | awk 'NR==1{print $3}'`" != "connected" ]
 do
 sleep 1
-
 done
 cd $wd
 test_j=0
@@ -483,7 +468,6 @@ collection_list | awk 'NR!=1{print $1}'
 list_roots ()
 {
 root_i=2
-
 roots_old_IFS="$IFS"
 IFS="
 "
