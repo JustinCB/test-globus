@@ -115,23 +115,7 @@ gateway_list ()
 }
 
 globus_ls () {
-	ls_num=`ls "$@" | awk 'NF>0' | wc -l`
-	ls_loops=`ls "$@" | grep -c ':'` #actually one more than that, for we start @ 0
-	ls_prefix=""
-	ls_j=1
-	for ls_i in `seq 0 $loops`
-	do
-		if [ $ls_i != 0 ]
-		then
-			prefix="`ls "$@" | awk 'NF>0' | awk 'NR=='$j'{gsub(/:$/,"");print}'`"
-			ls_j=`expr $ls_j + 1`
-		fi
-		while [ ! "`ls "$@" | awk 'NF>0' | awk 'NR=='$ls_j' && /:$/'`" ] && ([ $ls_j -lt $num ] || [ $ls_j = $num ])
-		do
-			ls "$@" | awk 'NF>0' | awk 'NR=='$ls_j'{print "'"$prefix"'/"$0}' | sed -e 's#//*#/#g'
-			ls_j=`expr $ls_j + 1`
-		done
-	done
+	find "$1" ! -type d
 }
 globus_stat () {
 	stats="`(stat -x $1 2>/dev/null || stat $1) | xargs`"
@@ -321,7 +305,7 @@ globus_transfer_helper () {
 	globus_wait `globus transfer -r $1 "$3" "$4" | awk 'END{print $NF}'`
 	echo reverse transfer  compleat
 	echo beginning file checks
-	for transfer_i in `globus_ls \`echo $4 | cut -d ":" -f2-\`/*`
+	for transfer_i in `globus_ls \`echo $4 | cut -d ":" -f2-\``
 	do
 		cmp -s $transfer_i `echo $2 | cut -d ':' -f2-`/`echo $i | sed -e "s#^\`echo $4 | cut -d ':' -f2-\`##"`
 		if [ $? != 0 ]
