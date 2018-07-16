@@ -253,6 +253,11 @@ then
 fi
 return 1
 fi
+elif [ "`globus task show $1 | awk '/Details/{print $NF}'`" = "TIMEOUT" ]
+then
+>&2 echo "Task timed out"
+return 1
+fi
 if [ "`globus task show $1 | awk '/Status/{print $NF}'`" = "SUCCEEDED" ]
 then
 #succeeded between timeout & getting here
