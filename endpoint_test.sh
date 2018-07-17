@@ -127,16 +127,12 @@ echo $stats | awk '{print "\t\tIO "$'$stat_i'}'
 stat_i=`expr $stat_i + 1`
 echo $stats | awk '{print "\t\t\t"$'$stat_i'}'
 stat_i=`expr $stat_i + 1`
-if [ ! "`echo $stats | awk '{print $'$stat_i'}' | grep ':'`" ]
-then
-echo "		File Type:"
-echo $stats | awk '{print "\t\t\t"$'$stat_i'}'
-fi
+echo $stats | awk '!$'$stat_i' ~ /.*:$/{print "\t\tFile Type:";print "\t\t\t"$'$stat_i'}'
 elif [ "$stat" = "Access:" ] || [ "$stat" = "Modify:" ] || [ "$stat" = "Change:" ] || [ "$stat" = "Birth:" ]
 then
 echo "		$stat"
 stat_i=`expr $stat_i + 1`
-if echo $stats | awk '{print substr($'$stat_i',1,1)}' | grep [0-9] >/dev/null 2>&1
+if [ "`echo $stats | awk 'substr($'$stat_i',1,1) ~ /[0-9]/'`" ]
 then
 echo "			Date:"
 echo $stats | awk '{print "\t\t\t\t"$'$stat_i'}'
@@ -285,14 +281,14 @@ echo reverse transfer  compleat
 echo beginning file checks
 for transfer_i in `globus_ls \`echo $4 | cut -d ":" -f2-\``
 do
-cmp -s $transfer_i `echo $2 | cut -d ':' -f2-`/`echo $i | sed -e "s#^\`echo $4 | cut -d ':' -f2-\`##"`
+cmp -s $transfer_i `echo $2 | cut -d ':' -f2-`/`echo $transfer_i | sed -e "s#^\`echo $4 | cut -d ':' -f2-\`##"`
 if [ $? != 0 ]
 then
-if [ `basename \`dirname $i\`` != `basename $4` ]
+if [ `basename \`dirname $transfer_i\`` != `basename $4` ]
 then
->&2 echo "/`basename \`dirname $i\``/`basename $i` fail'd with $1"
+>&2 echo "/`basename \`dirname $transfer_i\``/`basename $transfer_i` fail'd with $1"
 else
->&2 echo "/`basename $i` fail'd with $1"
+>&2 echo "/`basename $transfer_i` fail'd with $1"
 fi
 exit 1
 fi
