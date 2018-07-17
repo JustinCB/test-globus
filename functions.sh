@@ -10,7 +10,7 @@ do_perftest ()
 		# run the test
 		# it gives a number of bytes/second
 		# handle if someone sent SIGUSR1 to dd & it printed intermediate
-		# We calculate bytes/second with the # of bytes & the # of seconds
+		# We calculate bytes/second with the # of bytes & the # of seconds in awk above
 		perf_tmp="`echo $perf_val | awk '{$1="";print}'`"
 		if [ "$perf_tmp" ]
 		then
@@ -50,43 +50,44 @@ globus_perftest ()
 	globus_perftest_temp=`do_perftest_round "${1}/globus_test1" oflags=sync`
 	sudo rm -f "${1}/globus_test1"
 	globus_perftest_result_whole=`expr '(' $globus_perftest_tmp + $globus_perftest_temp ')' / 2`
+	# by now, globus_perftest_result_whole has the average bytes/second
+	# below is just formatting
 	globus_perftest_result_decimal=0
 	globus_perftest_byte_prefix=""
 	if [ $globus_perftest_result_whole -gt 10000 ]
 	then
 		globus_perftest_byte_prefix="k"
 		globus_perftest_result_decimal=`echo $globus_perftest_result_whole | awk '{printf "%03d\n", ($1-((int($1/1000))*1000))}'`
+
+		# the awk calculates the difference between the number & it
+		# integer divided by 1000 then multiplied by 1000
+		# the expr divides it by 1000
+
 		globus_perftest_result_whole=`expr $globus_perftest_result_whole / 1000`
-	fi
-	if [ $globus_perftest_result_whole -gt 1000 ]
+		if [ $globus_perftest_result_whole -gt 1000 ]
+		then
+			globus_perftest_byte_prefix="M"
+			globus_perftest_result_decimal=`echo $globus_perftest_result_whole | awk '{printf "%03d\n", ($1-((int($1/1000))*1000))}'`$globus_perftest_result_decimal
+			globus_perftest_result_whole=`expr $globus_perftest_result_whole / 1000`
+			if [ $globus_perftest_result_whole -gt 1000 ]
 	then
-		globus_perftest_byte_prefix="M"
-		globus_perftest_result_decimal=`echo $globus_perftest_result_whole | awk '{printf "%03d\n", ($1-((int($1/1000))*1000))}'`$globus_perftest_result_decimal
-		globus_perftest_result_whole=`expr $globus_perftest_result_whole / 1000`
-	fi
-	if [ $globus_perftest_result_whole -gt 1000 ]
-	then
-		globus_perftest_byte_prefix="G"
-		globus_perftest_result_decimal=`echo $globus_perftest_result_whole | awk '{printf "%03d\n", ($1-((int($1/1000))*1000))}'`$globus_perftest_result_decimal
-		globus_perftest_result_whole=`expr $globus_perftest_result_whole / 1000`
-	fi
-	if [ $globus_perftest_result_whole -gt 1000 ]
-	then
-		globus_perftest_byte_prefix="G"
-		globus_perftest_result_decimal=`echo $globus_perftest_result_whole | awk '{printf "%03d\n", ($1-((int($1/1000))*1000))}'`$globus_perftest_result_decimal
-		globus_perftest_result_whole=`expr $globus_perftest_result_whole / 1000`
-	fi
-	if [ $globus_perftest_result_whole -gt 1000 ]
-	then
-		globus_perftest_byte_prefix="T"
-		globus_perftest_result_decimal=`echo $globus_perftest_result_whole | awk '{printf "%03d\n", ($1-((int($1/1000))*1000))}'`$globus_perftest_result_decimal
-		globus_perftest_result_whole=`expr $globus_perftest_result_whole / 1000`
-	fi
-	if [ $globus_perftest_result_whole -gt 1000 ]
-	then
-		globus_perftest_byte_prefix="P"
-		globus_perftest_result_decimal=`echo $globus_perftest_result_whole | awk '{printf "%03d\n", ($1-((int($1/1000))*1000))}'`$globus_perftest_result_decimal
-		globus_perftest_result_whole=`expr $globus_perftest_result_whole / 1000`
+				globus_perftest_byte_prefix="G"
+				globus_perftest_result_decimal=`echo $globus_perftest_result_whole | awk '{printf "%03d\n", ($1-((int($1/1000))*1000))}'`$globus_perftest_result_decimal
+				globus_perftest_result_whole=`expr $globus_perftest_result_whole / 1000`
+				if [ $globus_perftest_result_whole -gt 1000 ]
+				then
+					globus_perftest_byte_prefix="T"
+					globus_perftest_result_decimal=`echo $globus_perftest_result_whole | awk '{printf "%03d\n", ($1-((int($1/1000))*1000))}'`$globus_perftest_result_decimal
+					globus_perftest_result_whole=`expr $globus_perftest_result_whole / 1000`
+					if [ $globus_perftest_result_whole -gt 1000 ]
+					then
+						globus_perftest_byte_prefix="P"
+						globus_perftest_result_decimal=`echo $globus_perftest_result_whole | awk '{printf "%03d\n", ($1-((int($1/1000))*1000))}'`$globus_perftest_result_decimal
+						globus_perftest_result_whole=`expr $globus_perftest_result_whole / 1000`
+					fi
+				fi
+			fi
+		fi
 	fi
 	globus_perftest_result=$globus_perftest_result_whole
 	globus_perftest_result_decimal=`echo $globus_perftest_result_decimal | sed -e 's/0*$//'`
@@ -118,7 +119,7 @@ globus_ls () {
 	find "$1" ! -type d
 }
 globus_stat () {
-	stats="`(stat -x $1 2>/dev/null || stat $1) | xargs`"
+	stats=`stat -x $1 2>/dev/null || stat $1`
 	stat_j=`echo $stats | wc -w`
 	stat_i=1
 	stat_per=0
@@ -371,22 +372,20 @@ endpoint_test_helper () {
 	./globusconnectpersonal -stop >/dev/null 2>&1
 	test_ids=`globus endpoint create --personal 'test endpoint' | awk 'NR!=1{print $NF}'`
 	./globusconnectpersonal -setup `echo $test_ids | awk '{print $2}'` -dir /tmp/globuscfg >/dev/null
+	test_id=`echo $test_ids | awk '{print $1}'`
 	./globusconnectpersonal -start -dir /tmp/globuscfg -restrict-paths r/tmp/globus_test,rw/tmp/globus_test_returns -shared-paths r/tmp/globus_test,rw/tmp/globus_test_returns >/dev/null &
 	while [ "`./globusconnectpersonal -status | awk 'NR==1{print $3}'`" != "connected" ]
 	do
 		sleep 1
 		#wait for GCP to connect
 	done
-	cd $wd
 	test_j=0
 	for test_i
 	do
-		if [ "$test_i" = "$1" ]
+		if [ "$test_i" != "$1" ]
 		then
-			true #nop/no-op
-		else
 			echo testing endpoint $test_j
-			globus_transfer_test_helper "`echo $test_ids | awk '{print $1}'`:/tmp/globus_test/" "${test_i}:/globus_test/" "`echo $test_ids | awk '{print $1}'`:/tmp/globus_test_returns/"
+			globus_transfer_test_helper "${test_id}:/tmp/globus_test/" "${test_i}:/globus_test/" "${test_id}:/tmp/globus_test_returns/"
 			echo "done testing endpoint $test_j"
 		fi
 		test_j=`expr $test_j + 1`
@@ -406,13 +405,12 @@ endpoint_test_helper () {
 			globus_wait `globus delete -r "${test_i}:/globus_test/" | awk 'NR==2{print $NF}'`
 		fi
 	done
-	cd $1
 	echo stopping gcp
 	./globusconnectpersonal -stop >/dev/null 2>&1
 	echo gcp stopped
 	echo deleting test endpoint
 	printf "test "
-	globus endpoint delete `echo $test_ids | awk '{print $1}'`
+	globus endpoint delete $test_id
 	echo removing gcp temporary config folder
 	rm -rf /tmp/globuscfg
 	echo gcp temporary config folder deleted
@@ -452,15 +450,15 @@ make_test_dataset ()
 }
 list_collection_names ()
 {
-	collection_list | awk 'BEGIN{FS="|"} NR!=1{sub(/^ /,"",$4);gsub(/ $/,"",$4);print $4}'
+	collection_list | awk -F "|" 'NR!=1{sub(/^ /,"",$4);gsub(/ $/,"",$4);print $4}'
 }
 list_names ()
 {
-	collection_list | awk 'BEGIN{FS="|"} NR!=1{sub(/^ /,"",$3);gsub(/ $/,"",$3);print $3}'
+	collection_list | awk -F "|" 'NR!=1{sub(/^ /,"",$3);gsub(/ $/,"",$3);print $3}'
 }
 list_types ()
 {
-	collection_list | awk 'BEGIN{FS="|"} NR!=1{sub(/^ /,"",$2);gsub(/ $/,"",$2);print $2}'
+	collection_list | awk -F '|' 'NR!=1{sub(/^ /,"",$2);gsub(/ $/,"",$2);print $2}'
 }
 list_uuid ()
 {
