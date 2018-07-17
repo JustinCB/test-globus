@@ -475,15 +475,15 @@ echo "$storage_gateway_show_info"
 }
 get_storage_gateway_name ()
 {
-storage_gateway_show $1 | awk '/display-name/{$1="";sub(/^ /, "");gsub(/ $/, "");sub(/^"/,"");gsub(/"$/,"");print $0}'
+storage_gateway_show $1 | awk '/display-name/{$1="";sub(/^ /, "");gsub(/ $/, "");sub(/^"/,"");gsub(/"$/,"");print}'
 }
 get_storage_gateway_type ()
 {
-storage_gateway_show $1 | awk '/connector/{$1="";sub(/^ /, "");gsub(/ $/, "");sub(/^"/,"");gsub(/"$/,"");print $0}'
+storage_gateway_show $1 | awk '/connector/{$1="";sub(/^ /, "");gsub(/ $/, "");sub(/^"/,"");gsub(/"$/,"");print}'
 }
 get_storage_gateway_root ()
 {
-storage_gateway_show $1 | awk '/root/{$1="";sub(/^ /, "");gsub(/ $/, "");sub(/^"/,"");gsub(/"$/,"");print $0}'
+storage_gateway_show $1 | awk '/root/{$1="";sub(/^ /, "");gsub(/ $/, "");sub(/^"/,"");gsub(/"$/,"");print}'
 }
 list_other_storage_gateways ()
 {
