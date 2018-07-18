@@ -431,14 +431,6 @@ make_test_dataset ()
 	dd if=/dev/urandom of=/tmp/globus_test/not_empty_dir/64KB.bin bs=4096 count=16 iflag=fullblock status=none
 	dd if=/dev/urandom of=/tmp/globus_test/not_empty_dir/8KB.bin bs=4096 count=2 iflag=fullblock status=none
 }
-list_collection_names ()
-{
-	collection_list | awk -F "|" 'NR!=1{sub(/^ /,"",$4);gsub(/ $/,"",$4);print $4}'
-}
-list_names ()
-{
-	collection_list | awk -F "|" 'NR!=1{sub(/^ /,"",$3);gsub(/ $/,"",$3);print $3}'
-}
 list_types ()
 {
 	collection_list | awk -F '|' 'NR!=1{sub(/^ /,"",$2);gsub(/ $/,"",$2);print $2}'
