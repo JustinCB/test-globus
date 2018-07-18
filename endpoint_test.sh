@@ -73,6 +73,7 @@ collection_list ()
 if [ ! "${collection_list_list_of_collections:+w}" ]
 then
 collection_list_list_of_collections="`sudo /opt/globus/bin/gcs-config collection list`"
+export collection_list_list_of_collections
 fi
 echo "$collection_list_list_of_collections"
 }
@@ -81,6 +82,7 @@ gateway_list ()
 if [ ! "${gateway_list_list_of_gateways:+w}" ]
 then
 gateway_list_list_of_gateways="`sudo /opt/globus/bin/gcs-config storage-gateway list`"
+export gateway_list_list_of_gateways
 fi
 echo "$gateway_list_list_of_gateways"
 }
@@ -483,11 +485,12 @@ do
 get_storage_gateway_name $i | awk '{print $0":"}'
 echo "	Type:"
 printf "\t\t"
-get_storage_gateway_type $i
+other_gateway_type=`get_storage_gateway_type $i`
+echo $other_gateway_type
 echo "	Display Name:"
 printf "\t\t"
 get_storage_gateway_name $i
-if [ "`get_storage_gateway_type $i`" = "POSIX" ]
+if [ "$other_gateway_type" = "POSIX" ]
 then
 echo "	Storage Root:"
 printf "\t\t"
