@@ -211,10 +211,8 @@ fi
 if [ "`globus task show $1 | awk '/Status/{print $NF}'`" = "SUCCEEDED" ]
 then
 return 0
-elif [ "`globus task show $1 | awk '/Status/{print $NF}'`" = "ACTIVE" ]
+elif [ "`globus task show $1 | awk '/Status/{print $NF}'`" != "ACTIVE" ]
 then
-true
-else
 >&2 echo "Test Error: Transfer timed out/finished & is paused or canceled"
 return 1
 fi

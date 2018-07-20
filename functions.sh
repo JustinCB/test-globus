@@ -231,14 +231,12 @@ globus_wait () {
 			then
 				#succeeded between timeout & getting here
 				return 0
-			elif [ "`globus task show $1 | awk '/Status/{print $NF}'`" = "ACTIVE" ]
+			elif [ "`globus task show $1 | awk '/Status/{print $NF}'`" != "ACTIVE" ]
 			then
-				#loop back again, then
-				true #a command is done, not an empty loop
-			else
 				>&2 echo "Test Error: Transfer timed out/finished & is paused or canceled"
 				return 1
 			fi
+			#else continue
 		elif [ $tmp != 0 ]
 		then
 			# globus task wait has (probably) printed an error message, so just exit
