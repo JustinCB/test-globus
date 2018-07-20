@@ -1,4 +1,8 @@
 #!/bin/sh
+if [ "$ZSH_VERSION" ]
+then
+emulate sh
+fi
 do_perftest ()
 {
 perf_val="`sudo dd if="$1" of="$2" bs="$3" count="$4" $5 2>&1 | awk '!/records ((in)|(out))/ && $1 ~ /[0-9][0-9\.]*/ && $(NF-3)!=0{printf "%.0f\n", $1/$(NF-3)}'`"
@@ -68,39 +72,33 @@ globus_perftest_result="${globus_perftest_result}.$globus_perftest_result_decima
 fi
 echo "			$globus_perftest_result ${globus_perftest_byte_prefix}B/s"
 }
-collection_list ()
-{
-if [ ! "${collection_list_list_of_collections:+w}" ]
-then
 collection_list_list_of_collections="`sudo /opt/globus/bin/gcs-config collection list`"
 export collection_list_list_of_collections
-fi
+collection_list ()
+{
 echo "$collection_list_list_of_collections"
 }
-gateway_list ()
-{
-if [ ! "${gateway_list_list_of_gateways:+w}" ]
-then
 gateway_list_list_of_gateways="`sudo /opt/globus/bin/gcs-config storage-gateway list`"
 export gateway_list_list_of_gateways
-fi
+gateway_list ()
+{
 echo "$gateway_list_list_of_gateways"
 }
 globus_ls () {
 find "$1" ! -type d
 }
 globus_stat () {
-stats=`stat -x $1 2>/dev/null || stat $1`
-stat_j=`echo $stats | wc -w`
+stats="`(stat -x $1 2>/dev/null || stat $1)|xargs`"
+stat_j=`echo "$stats" | wc -w`
 stat_i=1
 stat_per=0
 while [ $stat_i -lt $stat_j ] || [ $stat_i = $stat_j ]
 do
-stat="`echo $stats | awk '{print $'$stat_i'}'`"
+stat="`echo "$stats" | awk '{print $'$stat_i'}'`"
 if [ '\'"$stat" = '\(' ]
 then
 stat_i=`expr $stat_i + 1`
-echo $stats | awk '{print "\t\t\t("$'$stat_i'}'
+echo "$stats" | awk '{print "\t\t\t("$'$stat_i'}'
 if [ $stat_per = 1 ]
 then
 stat_per=0
@@ -110,11 +108,11 @@ fi
 elif [ "$stat" = "IO" ]
 then
 stat_i=`expr $stat_i + 1`
-echo $stats | awk '{print "\t\tIO "$'$stat_i'}'
+echo "$stats" | awk '{print "\t\tIO "$'$stat_i'}'
 stat_i=`expr $stat_i + 1`
-echo $stats | awk '{print "\t\t\t"$'$stat_i'}'
+echo "$stats" | awk '{print "\t\t\t"$'$stat_i'}'
 stat_i=`expr $stat_i + 1`
-echo $stats | awk '!$'$stat_i' ~ /.*:$/{print "\t\tFile Type:";print "\t\t\t"$'$stat_i'}'
+echo "$stats" | awk '!$'$stat_i' ~ /.*:$/{print "\t\tFile Type:";print "\t\t\t"$'$stat_i'}'
 elif [ "$stat" = "Access:" ] || [ "$stat" = "Modify:" ] || [ "$stat" = "Change:" ] || [ "$stat" = "Birth:" ]
 then
 echo "		$stat"
@@ -268,12 +266,14 @@ echo reverse transfer  compleat
 echo beginning file checks
 for transfer_i in `globus_ls \`echo $4 | cut -d ":" -f2-\``
 do
-cmp -s $transfer_i `echo $2 | cut -d ':' -f2-`/`echo $transfer_i | sed -e "s#^\`echo $4 | cut -d ':' -f2-\`##"`
+transfer_j="`echo $4 | cut -d : -f2-`"
+cmp -s $transfer_i `echo $2 | cut -d : -f2-`/`echo $transfer_i | sed "s#^$transfer_j##"`
 if [ $? != 0 ]
 then
-if [ `basename \`dirname $transfer_i\`` != `basename $4` ]
+transfer_j="`dirname $transfer_i`"
+if [ `basename $transfer_j` != `basename $4` ]
 then
->&2 echo "/`basename \`dirname $transfer_i\``/`basename $transfer_i` fail'd with $1"
+>&2 echo "/`basename $transfer_j`/`basename $transfer_i` fail'd with $1"
 else
 >&2 echo "/`basename $transfer_i` fail'd with $1"
 fi
@@ -330,7 +330,7 @@ make_test_dataset >/dev/null
 wd="$PWD"
 cd $1
 ./globusconnectpersonal -stop >/dev/null 2>&1
-test_ids=`globus endpoint create --personal 'test endpoint' | awk 'NR!=1{print $NF}'`
+test_ids="`globus endpoint create --personal 'test endpoint' | awk 'NR!=1{print $NF}' | xargs`"
 ./globusconnectpersonal -setup `echo $test_ids | awk '{print $2}'` -dir /tmp/globuscfg >/dev/null
 test_id=`echo $test_ids | awk '{print $1}'`
 ./globusconnectpersonal -start -dir /tmp/globuscfg -restrict-paths r/tmp/globus_test,rw/tmp/globus_test_returns -shared-paths r/tmp/globus_test,rw/tmp/globus_test_returns >/dev/null &
@@ -443,26 +443,13 @@ echo $uuid_i
 fi
 done
 }
-storage_gateway_show ()
-{
-if [ ! "${storage_gateway_show_info:+w}" ] || [ "$storage_gateway_showing" != "$1" ]
-then
-storage_gateway_show_info="`sudo /opt/globus/bin/gcs-config storage-gateway show $1`"
-storage_gateway_showing="$1"
-fi
-echo "$storage_gateway_show_info"
-}
-get_storage_gateway_name ()
-{
-storage_gateway_show $1 | awk '/display-name/{$1="";sub(/^ /, "");gsub(/ $/, "");sub(/^"/,"");gsub(/"$/,"");print}'
-}
 get_storage_gateway_type ()
 {
-storage_gateway_show $1 | awk '/connector/{$1="";sub(/^ /, "");gsub(/ $/, "");sub(/^"/,"");gsub(/"$/,"");print}'
+gateway_list | awk -F '|' 'NF && $1  ~ /'"$1"' */{gsub(/^ /, "",$2);gsub(/ $/, "",$2);print $2}'
 }
 get_storage_gateway_root ()
 {
-storage_gateway_show $1 | awk '/root/{$1="";sub(/^ /, "");gsub(/ $/, "");sub(/^"/,"");gsub(/"$/,"");print}'
+gateway_list | awk -F '|' 'NF && $1 ~ /'"$1"' */{gsub(/^ /, "",$4);gsub(/ $/, "",$4);print $4}'
 }
 list_other_storage_gateways ()
 {
@@ -472,23 +459,16 @@ echo Note: these are not set up for transfers
 echo You must create a new collection with globus.org to set them up
 echo
 echo
-for i in `list_other_storage_gateway_uuids`
+for other_storage_gateway_i in `list_other_storage_gateway_uuids`
 do
-get_storage_gateway_name $i | awk '{print $0":"}'
-echo "	Type:"
-printf "\t\t"
-other_gateway_type=`get_storage_gateway_type $i`
-echo $other_gateway_type
-echo "	Display Name:"
-printf "\t\t"
-get_storage_gateway_name $i
-if [ "$other_gateway_type" = "POSIX" ]
+gateway_list | awk -F '|' '{for(i=1;i<=NF;i++){gsub(/^ /,"",$i);gsub(/ $/,"",$i);}} $1 ~ /'"$other_storage_gateway_i"' */{print $3":";print "\tType:";print "\t\t"$2;}'
+if [ "`get_storage_gateway_type $other_storage_gateway_i`" = "POSIX" ]
 then
 echo "	Storage Root:"
 printf "\t\t"
-get_storage_gateway_root $i
+get_storage_gateway_root $other_storage_gateway_i
 echo "	Stat:"
-globus_stat "`get_storage_gateway_root $i`"
+globus_stat "`get_storage_gateway_root $other_storage_gateway_i`"
 fi
 done
 }
