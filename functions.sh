@@ -75,6 +75,8 @@ globus_perftest ()
 				globus_perftest_byte_prefix=$globus_perftest_result_i
 				globus_perftest_result_decimal=`echo $globus_perftest_result_whole | awk '{printf "%03d\n", ($1-((int($1/1000))*1000))}'`$globus_perftest_result_decimal
 				globus_perftest_result_whole=`expr $globus_perftest_result_whole / 1000`
+			else
+				break
 			fi
 		done
 	fi
